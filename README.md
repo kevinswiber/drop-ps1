@@ -59,6 +59,20 @@ scoop update
 scoop update drop
 ```
 
+**Over SSH, Scoop's junctions are blocked.** Scoop points its shims at an
+`apps\<app>\current` junction, and on current Windows 11 builds a session
+spawned by `sshd` cannot traverse junctions created by a non-elevated user
+(the error is "The path cannot be traversed because it contains an untrusted
+mount point"). That makes every Scoop-installed command fail over SSH, which
+is exactly where you want `drop`. Tell Scoop to skip the junction and re-shim:
+
+```powershell
+scoop config no_junction true
+scoop reset drop
+```
+
+Or use the Gallery or clone install, neither of which involves a junction.
+
 A standalone MSYS2 shell (as opposed to Git bash) does not inherit the
 Windows user `PATH` by default, so it will not see Scoop's shims or any
 other Scoop-installed tool. Either start it with `MSYS2_PATH_TYPE=inherit`

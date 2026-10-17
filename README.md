@@ -1,5 +1,7 @@
 # drop-ps1
 
+[![CI](https://github.com/kevinswiber/drop-ps1/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinswiber/drop-ps1/actions/workflows/ci.yml)
+
 Run a command on Windows without elevated privileges, from a PowerShell script.
 
 A port of the `drop` / `pdrop` applets from [busybox-w32](https://github.com/rmyorston/busybox-w32)
@@ -27,10 +29,13 @@ Mandatory Label\Medium Mandatory Level Label   S-1-16-8192
 
 ## Install
 
-Put this directory on your `PATH`. That is the whole install.
+Clone the repo and put its `bin` directory on your `PATH`. That is the whole
+install; `bin` holds only the three entry points, so nothing else leaks onto
+your `PATH`.
 
 ```powershell
-[Environment]::SetEnvironmentVariable('PATH', "$PWD;" + [Environment]::GetEnvironmentVariable('PATH', 'User'), 'User')
+git clone https://github.com/kevinswiber/drop-ps1
+[Environment]::SetEnvironmentVariable('PATH', "$PWD\drop-ps1\bin;" + [Environment]::GetEnvironmentVariable('PATH', 'User'), 'User')
 ```
 
 Open a new shell afterwards. Three entry points are provided so a bare `drop`
@@ -89,7 +94,7 @@ with a weaker token, which is exactly what a non-elevated logon would get.
 - **Output goes to the console, not the pipeline.** When run interactively,
   the child writes to the real console handles, so
   `$x = drop whoami` captures nothing. Run it as a separate process to
-  capture: `$x = pwsh -File drop.ps1 whoami`. In scripts and over SSH the
+  capture: `$x = pwsh -File bin\drop.ps1 whoami`. In scripts and over SSH the
   standard handles are already pipes, so this does not come up.
 - **Windows PowerShell 5.1 without `-File`.** `powershell.exe .\drop.ps1 ...`
   is treated as `-Command`, which strips double quotes from arguments and
@@ -104,6 +109,23 @@ with a weaker token, which is exactly what a non-elevated logon would get.
 - **The C# type is compiled once per session** and named after a hash of its
   source, so editing the script and re-running it in the same session picks
   up the change.
+
+## Testing
+
+CI runs on a stock `windows-latest` GitHub runner, where the runner account
+is a local administrator. The [Pester](https://pester.dev) suite in `tests/`
+launches real de-elevated children and checks that Administrators is
+deny-only, the integrity level is Medium, only harmless privileges remain,
+exit codes pass through, and the right shell is picked when invoked from
+pwsh, Windows PowerShell 5.1, cmd.exe and Git bash. The workflow also lints
+with [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer).
+
+To run it yourself:
+
+```powershell
+Install-Module Pester -MinimumVersion 5.5 -Scope CurrentUser
+Invoke-Pester -Path tests -Output Detailed
+```
 
 ## Credits
 

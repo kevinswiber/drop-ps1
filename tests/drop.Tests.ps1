@@ -54,6 +54,29 @@ Describe 'drop.ps1' {
         }
     }
 
+    Context 'help and version' {
+        It 'prints usage for <flag> and exits 0' -ForEach @(
+            @{ flag = '-h' }, @{ flag = '--help' }
+        ) {
+            $r = Invoke-Drop $flag
+            $r.ExitCode | Should -Be 0
+            $r.Output | Should -Match '^Usage: drop '
+            $r.Output | Should -Match '-s SHELL'
+        }
+
+        It 'prints the PSScriptInfo version for --version' {
+            $expected = (Test-ScriptFileInfo -Path $Drop).Version
+            $r = Invoke-Drop --version
+            $r.ExitCode | Should -Be 0
+            $r.Output.Trim() | Should -Be "drop $expected"
+        }
+
+        It 'still treats -h as a command name when other arguments follow' {
+            # Only a lone -h is help; `drop -h foo` is an attempt to run "-h".
+            (Invoke-Drop -h foo).ExitCode | Should -Be 127
+        }
+    }
+
     Context 'privilege drop' {
         BeforeAll { $script:Groups = (Invoke-Drop whoami /groups).Output }
 

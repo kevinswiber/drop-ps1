@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID bac66db3-4d59-4e53-9b56-0ae8a98179cc
 .AUTHOR Kevin Swiber
 .COPYRIGHT (c) 2026 Kevin Swiber. MIT License.
@@ -45,6 +45,34 @@
 # CreateProcessAsUser with inherited std handles -> wait -> exit code.
 
 $ErrorActionPreference = 'Stop'
+
+# --help and --version answer before anything platform-specific runs.
+# (`drop -?` never gets here: PowerShell answers it with the comment-based help.)
+if ($args.Count -eq 1 -and $args[0] -in '-h', '--help') {
+    @'
+Usage: drop [COMMAND [ARG...] | [-s SHELL] -c CMD_STRING [ARG...]]
+
+Drop elevated privileges (Administrators deny-only, Medium integrity) and
+run COMMAND. With no command, run an interactive shell: the one drop was
+invoked from, or SHELL.
+
+  -c CMD_STRING   run CMD_STRING in the shell (passed as -c, or /c for cmd.exe)
+  -s SHELL        use SHELL (name or path) instead of the invoking shell
+  -h, --help      show this help and exit
+  --version       show the version and exit
+
+Exit status is the child's, or 127 if COMMAND is not found, 126 if it
+could not be started. Set DROP_DEBUG=1 to see how the shell was chosen.
+https://github.com/kevinswiber/drop-ps1
+'@
+    exit 0
+}
+if ($args.Count -eq 1 -and $args[0] -eq '--version') {
+    # The version lives in the PSScriptInfo header at the top of this file.
+    $m = [regex]::Match((Get-Content -LiteralPath $PSCommandPath -Raw), '(?m)^\.VERSION\s+(\S+)')
+    "drop $(if ($m.Success) { $m.Groups[1].Value } else { 'unknown' })"
+    exit 0
+}
 
 # Everything below is Win32 (Safer tokens, integrity levels, CreateProcessAsUser).
 # $IsWindows does not exist on Windows PowerShell 5.1, so check the platform.

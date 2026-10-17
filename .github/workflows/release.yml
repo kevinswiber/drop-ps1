@@ -55,6 +55,8 @@ jobs:
           $prev = git describe --tags --abbrev=0 "$tag^" 2>$null
           $range = if ($prev) { "$prev..$tag" } else { $tag }
           $commits = git log --reverse --format='- %s (%h)' $range
-          $notes = @("## Commits", "") + $commits + @("", "**Full Changelog**: https://github.com/${{ github.repository }}/commits/$tag")
+          $repo = 'https://github.com/${{ github.repository }}'
+          $changelog = if ($prev) { "$repo/compare/$prev...$tag" } else { "$repo/commits/$tag" }
+          $notes = @("## Commits", "") + $commits + @("", "**Full Changelog**: $changelog")
           $notes -join "`n" | Set-Content -Path release-notes.md
           gh release create $tag --title $tag --notes-file release-notes.md

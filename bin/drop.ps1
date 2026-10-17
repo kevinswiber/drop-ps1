@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID bac66db3-4d59-4e53-9b56-0ae8a98179cc
 .AUTHOR Kevin Swiber
 .COPYRIGHT (c) 2026 Kevin Swiber. MIT License.

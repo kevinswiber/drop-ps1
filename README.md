@@ -120,11 +120,13 @@ exit codes pass through, and the right shell is picked when invoked from
 pwsh, Windows PowerShell 5.1, cmd.exe and Git bash. The workflow also lints
 with [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer).
 
-To run it yourself:
+To run it yourself, `build.ps1` is the task runner; it installs Pester and
+PSScriptAnalyzer into your user module scope if they are missing:
 
 ```powershell
-Install-Module Pester -MinimumVersion 5.5 -Scope CurrentUser
-Invoke-Pester -Path tests -Output Detailed
+.\build.ps1          # lint and test
+.\build.ps1 Lint
+.\build.ps1 Test
 ```
 
 ## Credits

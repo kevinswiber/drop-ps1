@@ -51,3 +51,4 @@ jobs:
           Write-Information "exit=$code`n$err" -InformationAction Continue
           if ($code -ne 1) { throw "expected exit code 1, got $code" }
           if ($err -notmatch 'drop: Windows only') { throw "expected the Windows-only message" }
+          exit 0   # the step wrapper would otherwise reuse drop's deliberate exit 1

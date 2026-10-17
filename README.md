@@ -29,9 +29,22 @@ Mandatory Label\Medium Mandatory Level Label   S-1-16-8192
 
 ## Install
 
-Clone the repo and put its `bin` directory on your `PATH`. That is the whole
-install; `bin` holds only the three entry points, so nothing else leaks onto
-your `PATH`.
+### From the PowerShell Gallery (PowerShell users)
+
+```powershell
+Install-PSResource drop        # PowerShell 7.4+
+Install-Script drop            # Windows PowerShell 5.1 or older pwsh
+```
+
+This installs `drop.ps1` into your user `Scripts` folder and offers to add
+that folder to `PATH`, after which `drop` works from pwsh and Windows
+PowerShell. The Gallery package is the script only; if you also want `drop`
+from cmd.exe or Git bash, use the clone install below.
+
+### From a clone (every shell)
+
+Clone the repo and put its `bin` directory on your `PATH`. `bin` holds only
+the three entry points, so nothing else leaks onto your `PATH`.
 
 ```powershell
 git clone https://github.com/kevinswiber/drop-ps1
@@ -128,6 +141,20 @@ PSScriptAnalyzer into your user module scope if they are missing:
 .\build.ps1 Lint
 .\build.ps1 Test
 ```
+
+## Releasing
+
+Bump `.VERSION` in the `PSScriptInfo` header of `bin/drop.ps1`, commit, then
+push a matching tag:
+
+```powershell
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+The release workflow checks that the tag matches the header, runs the build,
+publishes the script to the PowerShell Gallery, and creates a GitHub release
+with notes generated from the commit history.
 
 ## Credits
 

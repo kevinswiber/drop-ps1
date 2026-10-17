@@ -1,0 +1,7 @@
+# The bash shim must keep LF endings or bash chokes on \r; everything else
+# can follow the platform default.
+drop        text eol=lf
+*.ps1       text
+*.cmd       text eol=crlf
+*.md        text
+LICENSE     text

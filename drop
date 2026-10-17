@@ -1,0 +1,6 @@
+#!/bin/bash
+# Git bash / MSYS shim for drop.ps1 (same directory). Prefers pwsh, falls
+# back to Windows PowerShell. exec keeps the child's exit code.
+dir=$(dirname "$0")
+if command -v pwsh >/dev/null 2>&1; then ps=pwsh; else ps=powershell; fi
+exec "$ps" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$dir/drop.ps1")" "$@"

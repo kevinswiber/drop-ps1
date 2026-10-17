@@ -50,8 +50,14 @@ scoop install kevinswiber/drop
 
 Scoop generates its own `drop.cmd`, `drop.ps1` and `drop` shims in its
 `shims` directory, which is already on `PATH`, so `drop` works from pwsh,
-Windows PowerShell, cmd.exe and Git bash. `scoop update drop` picks up new
-releases.
+Windows PowerShell, cmd.exe and Git bash. To upgrade, refresh the buckets
+first, then update the app (`scoop update <app>` alone only checks your
+local copy of the bucket):
+
+```powershell
+scoop update
+scoop update drop
+```
 
 A standalone MSYS2 shell (as opposed to Git bash) does not inherit the
 Windows user `PATH` by default, so it will not see Scoop's shims or any

@@ -53,6 +53,15 @@ Scoop generates its own `drop.cmd`, `drop.ps1` and `drop` shims in its
 Windows PowerShell, cmd.exe and Git bash. `scoop update drop` picks up new
 releases.
 
+A standalone MSYS2 shell (as opposed to Git bash) does not inherit the
+Windows user `PATH` by default, so it will not see Scoop's shims or any
+other Scoop-installed tool. Either start it with `MSYS2_PATH_TYPE=inherit`
+or add the shims directory in `~/.bashrc`:
+
+```bash
+export PATH="$PATH:$(cygpath -u "$USERPROFILE")/scoop/shims"
+```
+
 ### From a clone (every shell)
 
 Clone the repo and put its `bin` directory on your `PATH`. `bin` holds only
@@ -113,6 +122,10 @@ The same five Win32 calls as `drop.c`, done through an embedded C# class:
 
 No second account, no stored credentials, no UAC. The child is the same user
 with a weaker token, which is exactly what a non-elevated logon would get.
+
+The child shares the console, so Ctrl+C reaches it directly and the parent
+ignores the signal while waiting. This has been exercised interactively in
+conhost, Windows Terminal, Git bash and MSYS2.
 
 ## Caveats
 

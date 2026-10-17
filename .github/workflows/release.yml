@@ -46,4 +46,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create '${{ github.ref_name }}' --title '${{ github.ref_name }}' --generate-notes
+          # GitHub's generated notes only list merged pull requests; this repo
+          # takes direct commits, so build the notes from the commit log since
+          # the previous tag (or from the start for the first release).
+          $tag  = '${{ github.ref_name }}'
+          $prev = git describe --tags --abbrev=0 "$tag^" 2>$null
+          $range = if ($prev) { "$prev..$tag" } else { $tag }
+          $commits = git log --reverse --format='- %s (%h)' $range
+          $notes = @("## Commits", "") + $commits + @("", "**Full Changelog**: https://github.com/${{ github.repository }}/commits/$tag")
+          $notes -join "`n" | Set-Content -Path release-notes.md
+          gh release create $tag --title $tag --notes-file release-notes.md

@@ -41,6 +41,18 @@ that folder to `PATH`, after which `drop` works from pwsh and Windows
 PowerShell. The Gallery package is the script only; if you also want `drop`
 from cmd.exe or Git bash, use the clone install below.
 
+### With Scoop (every shell)
+
+```powershell
+scoop bucket add kevinswiber https://github.com/kevinswiber/scoop-bucket
+scoop install kevinswiber/drop
+```
+
+Scoop generates its own `drop.cmd`, `drop.ps1` and `drop` shims in its
+`shims` directory, which is already on `PATH`, so `drop` works from pwsh,
+Windows PowerShell, cmd.exe and Git bash. `scoop update drop` picks up new
+releases.
+
 ### From a clone (every shell)
 
 Clone the repo and put its `bin` directory on your `PATH`. `bin` holds only

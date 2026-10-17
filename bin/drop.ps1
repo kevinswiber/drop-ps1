@@ -3,7 +3,7 @@
 #
 # Usage:  drop [COMMAND [ARG...] | [-s SHELL] -c CMD_STRING [ARG...]]
 #
-# Install: put this directory on PATH. PowerShell runs `drop` as drop.ps1
+# Install: put this bin directory on PATH. PowerShell runs `drop` as drop.ps1
 # directly; drop.cmd is a shim for cmd.exe and `drop` (no extension) is a
 # shim for Git bash / MSYS. The shebang lets Git bash run ./drop.ps1 too.
 #

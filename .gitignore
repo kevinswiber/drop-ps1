@@ -1,0 +1,8 @@
+# Pester output
+testResults.xml
+
+# Editor and OS noise
+*.log
+*.swp
+.DS_Store
+Thumbs.db

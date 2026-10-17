@@ -39,6 +39,21 @@ BeforeAll {
 }
 
 Describe 'drop.ps1' {
+    Context 'PowerShell Gallery metadata' {
+        It 'has a valid PSScriptInfo header' {
+            $info = Test-ScriptFileInfo -Path $Drop
+            $info.Name | Should -Be 'drop'
+            $info.Author | Should -Not -BeNullOrEmpty
+            $info.Description | Should -Not -BeNullOrEmpty
+            $info.ProjectUri | Should -Match '^https://github.com/'
+            "$($info.Version)" | Should -Match '^\d+\.\d+\.\d+$'
+        }
+
+        It 'keeps the shebang as the first line' {
+            (Get-Content $Drop -TotalCount 1) | Should -Be '#!/usr/bin/env pwsh'
+        }
+    }
+
     Context 'privilege drop' {
         BeforeAll { $script:Groups = (Invoke-Drop whoami /groups).Output }
 

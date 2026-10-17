@@ -1,4 +1,28 @@
 #!/usr/bin/env pwsh
+
+<#PSScriptInfo
+.VERSION 1.0.0
+.GUID bac66db3-4d59-4e53-9b56-0ae8a98179cc
+.AUTHOR Kevin Swiber
+.COPYRIGHT (c) 2026 Kevin Swiber. MIT License.
+.TAGS Windows Security Privileges Elevation UAC Token Administrator SSH
+.LICENSEURI https://github.com/kevinswiber/drop-ps1/blob/main/LICENSE
+.PROJECTURI https://github.com/kevinswiber/drop-ps1
+.RELEASENOTES https://github.com/kevinswiber/drop-ps1/releases
+#>
+
+<#
+.SYNOPSIS
+    Run a command on Windows without elevated privileges.
+.DESCRIPTION
+    Drops elevated privileges (Administrators group made deny-only, Medium
+    integrity) and runs a command, or an interactive shell when no command is
+    given. A PowerShell port of busybox-w32's drop/pdrop applets. Useful over
+    SSH, where an administrator account always gets an elevated session.
+.LINK
+    https://github.com/kevinswiber/drop-ps1
+#>
+
 # drop.ps1 - PowerShell port of busybox-w32's drop/pdrop applet.
 #
 # Usage:  drop [COMMAND [ARG...] | [-s SHELL] -c CMD_STRING [ARG...]]

@@ -1,0 +1,49 @@
+name: Release
+
+# Pushing a tag like v1.2.3 publishes bin/drop.ps1 to the PowerShell Gallery
+# and creates the matching GitHub release. The tag must equal the .VERSION in
+# the script's PSScriptInfo header, so a release is always a deliberate bump.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # create the GitHub release
+
+jobs:
+  release:
+    name: Publish to PowerShell Gallery and GitHub
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check the tag matches the script version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}' -replace '^v', ''
+          $info = Test-ScriptFileInfo -Path bin/drop.ps1
+          if ("$($info.Version)" -ne $tag) {
+            throw "Tag v$tag does not match .VERSION $($info.Version) in bin/drop.ps1"
+          }
+          "Releasing drop $tag" | Out-Host
+
+      - name: Lint and test
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Publish to the PowerShell Gallery
+        shell: pwsh
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          if (-not (Get-Module -ListAvailable Microsoft.PowerShell.PSResourceGet)) {
+            Install-Module Microsoft.PowerShell.PSResourceGet -Scope CurrentUser -Force
+          }
+          Publish-PSResource -Path bin/drop.ps1 -Repository PSGallery -ApiKey $env:PSGALLERY_API_KEY
+
+      - name: Create the GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create '${{ github.ref_name }}' --title '${{ github.ref_name }}' --generate-notes

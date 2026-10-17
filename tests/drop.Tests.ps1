@@ -145,6 +145,17 @@ Describe 'drop.ps1' {
             $LASTEXITCODE | Should -Be 5
         }
 
+        It 'prefers the real shell over an sh wrapper, as used by Scoop shims' -Skip:(-not $HasBash) {
+            # Scoop's shim is `#!/bin/sh` running pwsh -file drop.ps1; the user is
+            # in bash. The child should be bash, not sh. A non-login bash does not
+            # export SHELL, so this exercises the MSYSTEM sibling-bash fallback.
+            $posix = $Drop -replace '\\', '/'
+            $bashCmd = 'sh -c ''pwsh -NoProfile -File "' + $posix + '" -c "echo child=\$0; exit 6"'''
+            $out = & $GitBash -c $bashCmd
+            ($out | Out-String) | Should -Match 'child=bash'
+            $LASTEXITCODE | Should -Be 6
+        }
+
         It 'honours -s to pick a shell explicitly' {
             (Invoke-Drop -s cmd.exe -c ver).Output | Should -Match 'Microsoft Windows \[Version'
         }

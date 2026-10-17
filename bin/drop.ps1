@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID bac66db3-4d59-4e53-9b56-0ae8a98179cc
 .AUTHOR Kevin Swiber
 .COPYRIGHT (c) 2026 Kevin Swiber. MIT License.
@@ -224,26 +224,57 @@ function Get-ProcessPath([int]$id) {
 # `.\drop.ps1`, or `-Command "& 'C:\...\drop.ps1' ..."`), skip it and walk up
 # the ancestors looking for a known shell. Otherwise this PowerShell is the
 # shell. Falls back to this PowerShell if nothing recognisable is found.
+# Set DROP_DEBUG=1 to see how the shell was chosen, on stderr.
+function Write-DropDebug([string]$Message) {
+    if ($env:DROP_DEBUG) { [Console]::Error.WriteLine("drop: $Message") }
+}
+
 function Get-InvokingShell {
     $self = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
-    $name = [regex]::Escape([IO.Path]::GetFileName($PSCommandPath))
+    $scriptName = [regex]::Escape([IO.Path]::GetFileName($PSCommandPath))
     $hostArgs = [Environment]::GetCommandLineArgs() | Select-Object -Skip 1
-    $isWrapper = [bool]($hostArgs | Where-Object { $_ -match "(?i)(^|[\\/\s'`"&])$name($|[\s'`"])" })
+    $isWrapper = [bool]($hostArgs | Where-Object { $_ -match "(?i)(^|[\\/\s'`"&])$scriptName($|[\s'`"])" })
+    Write-DropDebug "host=$self wrapper=$isWrapper args=[$($hostArgs -join ' ')]"
     if (-not $isWrapper) { return $self }
 
+    # POSIX shells export SHELL. It names the user's real shell even when the
+    # nearest ancestor is a wrapper such as a `#!/bin/sh` shim.
+    $fromEnv = $null
+    if ($env:SHELL) {
+        $sh = Find-Executable ([IO.Path]::GetFileNameWithoutExtension($env:SHELL))
+        if ($sh -and ($knownShells -contains [IO.Path]::GetFileName($sh).ToLower())) { $fromEnv = $sh }
+    }
+    Write-DropDebug "SHELL=[$env:SHELL] -> $fromEnv"
+
     $id = $PID
+    $shWrapper = $null
     for ($depth = 0; $depth -lt 6; $depth++) {
         $id = Get-ParentProcessId $id
         if (-not $id) { break }
         $path = Get-ProcessPath $id
-        if ($path -and ($knownShells -contains [IO.Path]::GetFileName($path).ToLower())) { return $path }
+        Write-DropDebug "ancestor $depth pid=$id $path"
+        if (-not $path) { continue }
+        $name = [IO.Path]::GetFileName($path).ToLower()
+        if ($knownShells -notcontains $name) { continue }
+        if ($name -eq 'sh.exe' -and $fromEnv -notmatch '(^|[\\/])sh\.exe$') {
+            # sh.exe is usually a shim's interpreter (Scoop, npm, ...) rather
+            # than the shell the user is typing in. Remember it and keep
+            # looking. Inside MSYS (Git bash), where a non-login shell does not
+            # export SHELL, assume the bash.exe next to it is the real shell.
+            $shWrapper = $path
+            if (-not $fromEnv -and $env:MSYSTEM) {
+                $sibling = Join-Path (Split-Path $path -Parent) 'bash.exe'
+                if (Test-Path -LiteralPath $sibling) { $fromEnv = $sibling }
+            }
+            continue
+        }
+        return $path
     }
     # No live shell ancestor (e.g. run via the shebang from Git bash, where the
-    # forking bash has already exec'd away). POSIX shells export SHELL; use it.
-    if ($env:SHELL) {
-        $sh = Find-Executable ([IO.Path]::GetFileNameWithoutExtension($env:SHELL))
-        if ($sh -and ($knownShells -contains [IO.Path]::GetFileName($sh).ToLower())) { return $sh }
-    }
+    # forking bash has already exec'd away): fall back to SHELL, then to sh.
+    Write-DropDebug "no shell ancestor; fromEnv=$fromEnv shWrapper=$shWrapper"
+    if ($fromEnv)   { return $fromEnv }
+    if ($shWrapper) { return $shWrapper }
     return $self
 }
 

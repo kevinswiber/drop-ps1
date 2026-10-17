@@ -36,3 +36,18 @@ jobs:
         with:
           name: pester-results
           path: testResults.xml
+
+  non-windows:
+    name: Refuses to run elsewhere (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: drop.ps1 exits 1 with a clear message off Windows
+        shell: pwsh
+        run: |
+          $err = & pwsh -NoProfile -File ./bin/drop.ps1 whoami 2>&1 | Out-String
+          $code = $LASTEXITCODE
+          Write-Information "exit=$code`n$err" -InformationAction Continue
+          if ($code -ne 1) { throw "expected exit code 1, got $code" }
+          if ($err -notmatch 'drop: Windows only') { throw "expected the Windows-only message" }

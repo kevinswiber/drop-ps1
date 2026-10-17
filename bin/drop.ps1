@@ -46,6 +46,14 @@
 
 $ErrorActionPreference = 'Stop'
 
+# Everything below is Win32 (Safer tokens, integrity levels, CreateProcessAsUser).
+# $IsWindows does not exist on Windows PowerShell 5.1, so check the platform.
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
+    $os = if ($PSVersionTable.OS) { $PSVersionTable.OS } else { [Environment]::OSVersion.VersionString }
+    [Console]::Error.WriteLine("drop: Windows only. Privilege dropping uses the Win32 token APIs; this is $os.")
+    exit 1
+}
+
 # Add-Type'd types live for the whole session and can't be replaced, so the
 # class name carries a hash of its source: editing the C# below yields a fresh
 # type instead of silently reusing a stale one from an earlier run.

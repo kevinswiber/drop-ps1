@@ -98,6 +98,7 @@ drop [COMMAND [ARG...] | [-s SHELL] -c CMD_STRING [ARG...]]
   exit code is returned.
 - `drop -c 'STRING'` passes the string to the shell (`-c`, or `/c` for cmd.exe).
 - `drop -s SHELL` picks the shell explicitly, by name or path.
+- `drop --help` and `drop --version` do what you expect.
 
 ```powershell
 drop                       # de-elevated shell, same kind as the one you're in
@@ -148,7 +149,9 @@ conhost, Windows Terminal, Git bash and MSYS2.
   source, so editing the script and re-running it in the same session picks
   up the change.
 
-## Testing
+## Development
+
+### Testing
 
 CI runs on a stock `windows-latest` GitHub runner, where the runner account
 is a local administrator. The [Pester](https://pester.dev) suite in `tests/`
@@ -156,7 +159,8 @@ launches real de-elevated children and checks that Administrators is
 deny-only, the integrity level is Medium, only harmless privileges remain,
 exit codes pass through, and the right shell is picked when invoked from
 pwsh, Windows PowerShell 5.1, cmd.exe and Git bash. The workflow also lints
-with [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer).
+with [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer), and
+an Ubuntu job checks that the script refuses to run off Windows.
 
 To run it yourself, `build.ps1` is the task runner; it installs Pester and
 PSScriptAnalyzer into your user module scope if they are missing:
@@ -167,7 +171,7 @@ PSScriptAnalyzer into your user module scope if they are missing:
 .\build.ps1 Test
 ```
 
-## Releasing
+### Releasing
 
 Bump `.VERSION` in the `PSScriptInfo` header of `bin/drop.ps1`, commit, then
 push a matching tag:
